@@ -64,11 +64,8 @@ public class RequestAndResponseFilter extends OncePerRequestFilter {
             logRequestBody(requestWrapper, "BODY: ", sb);
         }
         sb.append("-----------------------------").append("\n");
-
-        sb.append("Execution time: %d".formatted(endTime - startTime)).append("\n");
         sb.append("<<<<<<<<<<RESPONSE<<<<<<<<<<").append("\n");
         sb.append("STATUS: %d".formatted(response.getStatus())).append("\n");
-
 
         StringBuilder responseBodySB = new StringBuilder();
 
@@ -84,7 +81,8 @@ public class RequestAndResponseFilter extends OncePerRequestFilter {
                     .forEach(h -> sb.append("HEADER %s : %s".formatted(h, responseWrapper.getHeader(h))).append("\n"));
         }
         sb.append(responseBodySB);
-        sb.append("-----------------------------");
+        sb.append("-----------------------------").append("\n");
+        sb.append("Execution time: %d".formatted(endTime - startTime));
         log.info(sb.toString());
     }
 
