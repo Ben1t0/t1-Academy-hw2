@@ -1,0 +1,9 @@
+{
+  "properties": [
+    {
+      "name": "webLogging-starter.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables or disables the WebLogging Starter."
+    }
+  ]
+}

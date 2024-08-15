@@ -1,0 +1,6 @@
+webLogging-starter:
+  enabled: true
+
+spring:
+  main:
+    web-application-type: NONE
