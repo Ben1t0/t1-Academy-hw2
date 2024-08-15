@@ -1,9 +1,22 @@
 {
   "properties": [
     {
-      "name": "webLogging-starter.enabled",
+      "name": "web-logging-starter.enabled",
       "type": "java.lang.Boolean",
-      "description": "Enables or disables the WebLogging Starter."
+      "description": "Enables or disables the Web Logging Starter."
+    }
+  ],
+  "hints": [
+    {
+      "name": "web-logging-starter.include",
+      "providers": [
+        {
+          "name": "handle-as",
+          "parameters": {
+            "target": "ru.t1academy.java.hw2.configuration.IncludeTypes"
+          }
+        }
+      ]
     }
   ]
 }

@@ -1,5 +1,8 @@
-webLogging-starter:
+web-logging-starter:
   enabled: true
+  include:
+    - body
+    - headers
 
 spring:
   main:

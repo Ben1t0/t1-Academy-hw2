@@ -6,10 +6,13 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.util.ContentCachingRequestWrapper;
 import org.springframework.web.util.ContentCachingResponseWrapper;
+import ru.t1academy.java.hw2.configuration.IncludeTypes;
+import ru.t1academy.java.hw2.configuration.LoggerSettings;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -20,7 +23,20 @@ import java.util.stream.Stream;
 
 public class RequestAndResponseFilter extends OncePerRequestFilter {
 
+    @Autowired
+    private LoggerSettings loggerSettings;
+
     private static final Logger log = LoggerFactory.getLogger(RequestAndResponseFilter.class);
+
+    private static final List<MediaType> READABLE_TYPES = Arrays.asList(
+            MediaType.valueOf("text/*"),
+            MediaType.APPLICATION_FORM_URLENCODED,
+            MediaType.APPLICATION_JSON,
+            MediaType.APPLICATION_XML,
+            MediaType.valueOf("application/*+json"),
+            MediaType.valueOf("application/*+xml"),
+            MediaType.MULTIPART_FORM_DATA
+    );
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
@@ -30,9 +46,13 @@ public class RequestAndResponseFilter extends OncePerRequestFilter {
         sb.append(">>>>>>>>>>REQUEST>>>>>>>>>>>").append("\n");
         sb.append("METHOD: %s".formatted(request.getMethod())).append("\n");
         sb.append("URI: %s".formatted(request.getRequestURI())).append("\n");
-        sb.append("----------HEADERS----------").append("\n");
-        Collections.list(request.getHeaderNames())
-                .forEach(h -> sb.append("HEADER %s : %s".formatted(h, request.getHeader(h))).append("\n"));
+
+        if (loggerSettings.getInclude().contains(IncludeTypes.HEADERS)) {
+            sb.append("----------HEADERS----------").append("\n");
+            Collections.list(request.getHeaderNames())
+                    .forEach(h -> sb.append("HEADER %s : %s".formatted(h, request.getHeader(h))).append("\n"));
+        }
+
         long startTime = System.currentTimeMillis();
 
         ContentCachingRequestWrapper requestWrapper = new ContentCachingRequestWrapper(request);
@@ -40,20 +60,29 @@ public class RequestAndResponseFilter extends OncePerRequestFilter {
         filterChain.doFilter(requestWrapper, responseWrapper);
         long endTime = System.currentTimeMillis();
 
-        logRequestBody(requestWrapper, "BODY: ", sb);
+        if (loggerSettings.getInclude().contains(IncludeTypes.BODY)) {
+            logRequestBody(requestWrapper, "BODY: ", sb);
+        }
         sb.append("-----------------------------").append("\n");
 
         sb.append("Execution time: %d".formatted(endTime - startTime)).append("\n");
         sb.append("<<<<<<<<<<RESPONSE<<<<<<<<<<").append("\n");
         sb.append("STATUS: %d".formatted(response.getStatus())).append("\n");
-        sb.append("----------HEADERS----------").append("\n");
+
 
         StringBuilder responseBodySB = new StringBuilder();
-        logResponseBody(responseWrapper, "BODY: ", responseBodySB);
+
+        if (loggerSettings.getInclude().contains(IncludeTypes.BODY)) {
+            logResponseBody(responseWrapper, "BODY: ", responseBodySB);
+        }
 
         responseWrapper.copyBodyToResponse();
-        responseWrapper.getHeaderNames()
-                .forEach(h -> sb.append("HEADER %s : %s".formatted(h, responseWrapper.getHeader(h))).append("\n"));
+
+        if (loggerSettings.getInclude().contains(IncludeTypes.HEADERS)) {
+            sb.append("----------HEADERS----------").append("\n");
+            responseWrapper.getHeaderNames()
+                    .forEach(h -> sb.append("HEADER %s : %s".formatted(h, responseWrapper.getHeader(h))).append("\n"));
+        }
         sb.append(responseBodySB);
         sb.append("-----------------------------");
         log.info(sb.toString());
@@ -72,16 +101,6 @@ public class RequestAndResponseFilter extends OncePerRequestFilter {
             logContent(content, request.getContentType(), request.getCharacterEncoding(), prefix, msg);
         }
     }
-
-    private static final List<MediaType> READABLE_TYPES = Arrays.asList(
-            MediaType.valueOf("text/*"),
-            MediaType.APPLICATION_FORM_URLENCODED,
-            MediaType.APPLICATION_JSON,
-            MediaType.APPLICATION_XML,
-            MediaType.valueOf("application/*+json"),
-            MediaType.valueOf("application/*+xml"),
-            MediaType.MULTIPART_FORM_DATA
-    );
 
     private static void logContent(byte[] content, String contentType, String contentEncoding, String prefix,
                                    StringBuilder sb) {
